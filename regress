@@ -1,0 +1,82 @@
+#!/bin/bash
+#
+# Regression testing tool for simple command line programs.
+#
+# Usage: regress program [ -o 'options' ] [ prefix-file ] [ -p prefix-list ]
+#   -o default string of options required by the program to generate the required output
+#   -p list of prefixes for files containing input and expected output for each regression test
+# Examples:
+#   $ regress cat -o -n -p test
+#   $ regress cat -o -n prefixes -p test
+#   $ regress cat -o -n prefixes -p test1 test2
+
+usage() {                                                       # print usage message & terminate
+    echo "Usage: $(basename "$0") program [ -o 'options' ] [ prefix-file ] [ -p prefix-list ]" >&2
+    exit 1
+}
+
+regress_prefix() {                                              # regression test for a prefix
+    prefix="${3}"
+
+    if [ ! -r "${prefix}.in" ]; then                            # input file exists with read permission ?
+        echo "cannot read input file ${prefix}.in" >&2 	
+        exit 1
+    elif [ ! -r "${prefix}.out" ]; then
+        echo "cannot read output file ${prefix}.out" >&2        # input file exists with read permission ?
+        exit 1
+    fi
+
+    temp=$(mktemp tmp.XXXX)
+
+    if [ -r "${prefix}.args" ]; then                            # args file ?
+        $("${1}" $(cat "${prefix}.args") < "${prefix}.in" > "${temp}")
+    else
+        $("${1}" ${2} < "${prefix}.in" > "${temp}")
+    fi
+
+    diff "${temp}" "${prefix}.out"
+    if [ "${?}" -eq 0 ]; then
+        echo "identical output for prefix \"${prefix}\""
+    fi
+    rm "${temp}"
+}
+
+if [ "${#}" -lt 2 ]; then 		
+    usage
+fi
+
+program="${1}"
+shift
+
+type "${program}" &> /dev/null
+if [ "${?}" -ne 0 ]; then                                       # program exists ?
+   echo "program \"${program}\" cannot be run" >&2	
+   exit 1
+fi
+
+options=""
+while [ ${#} -gt 0 ]; do                                        # process command-line arguments
+    case "${1}" in
+    '-o') options="${2}"; shift ;;                              # options ?
+    '-p')                                                       # prefix-list ?
+        shift
+        while [ ${#} -gt 0 ]; do
+            regress_prefix "${program}" "${options}" "${1}"
+            shift
+        done
+        ;;											
+    *) 
+        if [ -f "${1}" -a -r "${1}" ]; then                     # prefix-file ?
+            for prefix in $(cat "${1}"); do
+                   regress_prefix "${program}" "${options}" "${prefix}"
+            done
+        else
+            echo "cannot access prefix-file ${1}" >&2
+            exit 1
+        fi
+        ;;
+    esac
+    shift
+done
+
+exit 0
