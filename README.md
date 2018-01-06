@@ -12,7 +12,7 @@ $ regress cat -o -n prefixes -p test1 test2
 
 ### [`harness`](harness)
 
-Test harness tool for testing the output of a candidate program against a solution program. This tool intended to be useful for checking solutions for assignments problems in university courses.
+Test harness tool for testing the output of a candidate program against a solution program. This tool is intended to be useful for checking solutions to assignments problems in university courses.
 
 ```bash
 $ harness ./foo-solution ./foo -o "-v"
