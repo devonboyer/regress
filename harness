@@ -5,8 +5,6 @@
 # Usage: harness solution candidate [ -o 'options' ]
 #    -o default string of options required by the solution and candidate programs to generate 
 #       the required output
-# Examples:
-#    $ harness ./foo-solution ./foo -o "-v"
 
 usage() {                                                       # print usage message & terminate
     echo "Usage: $(basename "$0") solution candidate [ -o 'options' ]" >&2
@@ -52,8 +50,10 @@ $("${solution}" ${options} < "${prefix}.in" > "${prefix}.out")
 
 regress "${candidate}" -o "${options}" -p "${prefix}"
 
+rc="${?}"
+
 # Clean up
 rm "${prefix}.in"
 rm "${prefix}.out"
 
-exit 0
+exit $rc
