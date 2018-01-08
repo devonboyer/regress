@@ -37,6 +37,8 @@ regress_prefix() {                                              # regression tes
     diff "${temp}" "${prefix}.out"
     if [ "${?}" -eq 0 ]; then
         echo "identical output for prefix \"${prefix}\""
+    else
+        rc=1
     fi
     rm "${temp}"
 }
@@ -54,6 +56,7 @@ if [ "${?}" -ne 0 ]; then                                       # program exists
    exit 1
 fi
 
+rc=0
 options=""
 while [ ${#} -gt 0 ]; do                                        # process command-line arguments
     case "${1}" in
@@ -68,7 +71,7 @@ while [ ${#} -gt 0 ]; do                                        # process comman
     *) 
         if [ -f "${1}" -a -r "${1}" ]; then                     # prefix-file ?
             for prefix in $(cat "${1}"); do
-                   regress_prefix "${program}" "${options}" "${prefix}"
+                regress_prefix "${program}" "${options}" "${prefix}"
             done
         else
             echo "cannot access prefix-file ${1}" >&2
@@ -79,4 +82,4 @@ while [ ${#} -gt 0 ]; do                                        # process comman
     shift
 done
 
-exit 0
+exit $rc
