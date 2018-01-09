@@ -3,12 +3,26 @@
 # Diff the output of a candidate program against a solution program.
 #
 # Usage: progdiff solution candidate [ -o 'options' ]
-#    -o default string of options required by the solution and candidate programs to generate 
+#   -o default string of options required by the solution and candidate programs to generate 
 #       the required output
 
-usage() {                                                       # print usage message & terminate
+usage () {                                                       # print usage message & terminate
     echo "Usage: $(basename "$0") solution candidate [ -o 'options' ]" >&2
     exit 1
+}
+
+progdiff_run () {
+    touch "${1}.in"
+
+    $("${solution}" ${options} < "${1}.in" > "${1}.out")
+
+    regress "${candidate}" -o "${options}" -p "${1}"
+
+    exitstatus="${?}"
+
+    # Clean up
+    rm -f "${1}.in"
+    rm -f "${1}.out"
 }
 
 if [ "${#}" -lt 2 ]; then
@@ -36,24 +50,12 @@ fi
 options=""
 while [ ${#} -gt 0 ]; do                                        # process command-line arguments
     case "${1}" in
-    '-o') options="${2}"; shift ;;                              # options ?		
-    *) 
+    '-o') options="${2}"; shift ;;                              # options ?
+    *)
     esac
     shift
 done
 
-prefix="test-$RANDOM"                                           # generate random prefix for test
+progdiff_run "test-$RANDOM"                                     # generate random prefix for test
 
-touch "${prefix}.in"                                            # hack: pass empty input file to regress
-
-$("${solution}" ${options} < "${prefix}.in" > "${prefix}.out")
-
-regress "${candidate}" -o "${options}" -p "${prefix}"
-
-rc="${?}"
-
-# Clean up
-rm "${prefix}.in"
-rm "${prefix}.out"
-
-exit $rc
+exit $exitstatus                                                # propogate exist status from regress  
