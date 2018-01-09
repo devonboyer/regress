@@ -10,10 +10,10 @@ $ regress cat -o -n prefixes -p test
 $ regress cat -o -n prefixes -p test1 test2
 ```
 
-### [`harness`](harness)
+### [`progdiff`](progdiff)
 
-Test harness tool for testing the output of a candidate program against a solution program. This tool is intended to be useful for checking solutions to assignments problems in university courses.
+Diff the output of a candidate program against a solution program. This tool is intended to be useful for checking solutions to assignments problems in university courses where a solution executable is often given.
 
 ```bash
-$ harness ./foo-solution ./foo -o "-v"
+$ progdiff ./foo-solution ./foo -o "-v"
 ```
