@@ -12,6 +12,11 @@ usage () {                                                       # print usage m
 }
 
 progdiff_run () {
+    if [ ! -r "${1}.in" ]; then                            # input file exists with read permission ?
+        echo "cannot read input file ${1}.in" >&2 	
+        exit 1
+    fi
+
     $("${solution}" ${options} < "${1}.in" > "${1}.out")
 
     regress "${candidate}" -o "${options}" -p "${1}"
