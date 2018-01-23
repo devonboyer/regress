@@ -2,12 +2,12 @@
 #
 # Diff the output of a candidate program against a solution program.
 #
-# Usage: progdiff solution candidate [ -o 'options' ] [ prefix ]
+# Usage: progdiff solution candidate [ -o 'options' ] [ prefix-list ]
 #   -o default string of options required by the solution and candidate programs to generate 
 #       the required output
 
 usage () {                                                       # print usage message & terminate
-    echo "Usage: $(basename "$0") solution candidate [ -o 'options' ] [ prefix ]" >&2
+    echo "Usage: $(basename "$0") solution candidate [ -o 'options' ] [ prefix-list ]" >&2
     exit 1
 }
 
@@ -44,25 +44,32 @@ if [ "${?}" -ne 0 ]; then                                       # candidate prog
 fi
 
 options=""
-prefix=""
 while [ ${#} -gt 0 ]; do                                        # process command-line arguments
     case "${1}" in
     '-o') options="${2}"; shift ;;                              # options ?
-    *)
-        prefix=$1 ;;
+    *)                                                          # prefix-list ?
+        while [ ${#} -gt 0 ]; do
+            progdiff_run ${1}
+            shift
+        done
+        exit $exitstatus                                        # propogate exist status from regres
+        ;;	
     esac
     shift
 done
 
-if [ -z $prefix ]; then
-    prefix="test-$RANDOM"                                       # generate random prefix for test
-    touch "${prefix}.in"                                        # hack: dummy input file for regress 
-    
-    progdiff_run "${prefix}"
+# For convenience, allow no prefixes to be specified by passing an empty temporary file 
+# with a random name to regress.
 
-    rm -f "${prefix}.in"                                        # cleanup dummy input file
-else
-    progdiff_run "${prefix}"
+prefix="test$RANDOM"                                            # generate random prefix for test       
+
+if [ -f "${prefix}.in" ]; then
+    rm -f "${prefix}.in"
 fi
+touch "${prefix}.in"                                            # hack: dummy input file for regress 
+
+progdiff_run "${prefix}"
+
+rm -f "${prefix}.in"                                            # cleanup dummy input file
 
 exit $exitstatus                                                # propogate exist status from regress  
